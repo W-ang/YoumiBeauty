@@ -13,7 +13,7 @@
 //流水明细
 #import "MonthSelectView.h"
 //套餐到期
-@interface YMHomeViewController ()<UITableViewDelegate,UITableViewDataSource,UITextFieldDelegate,monthdataString>
+@interface YMHomeViewController ()<UITableViewDelegate,UITableViewDataSource,UITextFieldDelegate>
 //等待确认
 @property(nonatomic,strong) UITableView         * tableView;
 @property(nonatomic,strong) UITextField         * searchText;
@@ -31,8 +31,11 @@
 @property(nonatomic,strong) UIView              * confirmButtonView;//确认按钮
 //流水明细
 @property(nonatomic,strong) MonthSelectView     * monthCalenbar;
+@property(nonatomic,strong) MonthSelectView     * dayCalenbar;
 @property(nonatomic,strong) UILabel             * yearLabel;
 @property(nonatomic,assign) NSInteger             yearNum;
+@property(nonatomic,assign) NSInteger             monthNum;
+@property(nonatomic,assign) NSInteger             dayNum;
 //套餐到期
 
 @end
@@ -307,7 +310,7 @@
 - (void)setMiddleView{
 
     UIView *dateBackView = [[UIView alloc] initWithFrame:Rect(0, 10, SCREEN_WIDTH, 165)];
-    dateBackView.backgroundColor = [UIColor orangeColor];
+    dateBackView.backgroundColor = [UIColor whiteColor];
     [self.view addSubview:dateBackView];
     
     UIImage *btnImage = [UIImage imageNamed:@"icon_home_leftBtn"];
@@ -334,8 +337,12 @@
     [dateBackView addSubview:_yearLabel];
     _yearLabel.text = [NSString stringWithFormat:@"%ld",[self year:[NSDate date]]];
     _yearNum = [self year:[NSDate date]];
+    _monthNum = [self month:[NSDate date]];
+    _dayNum   = [self day:[NSDate date]];
     
     [dateBackView addSubview:self.monthCalenbar.monthSelectView];
+    [dateBackView addSubview:self.dayCalenbar.monthSelectView];
+    [self getYearMonthDay];
 }
 - (void)ClickToDo:(UIButton *)sender{
 
@@ -348,6 +355,21 @@
         _yearNum ++;
         _yearLabel.text = [NSString stringWithFormat:@"%ld",_yearNum];
     }
+    self.dayCalenbar.dayOfMonthNum = [self NSStringIntTeger:_monthNum andYear:self.yearNum];
+    [self.dayCalenbar setData];
+    [self getYearMonthDay];
+}
+// 今天是哪一天
+- (NSInteger)day:(NSDate *)date
+{
+    NSDateComponents *components = [[NSCalendar currentCalendar] components:(NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay) fromDate:date];
+    return [components day];
+}
+// 这个月共有几天
+- (NSInteger)totaldaysInMonth:(NSDate *)date
+{
+    NSRange daysInLastMonth = [[NSCalendar currentCalendar] rangeOfUnit:NSCalendarUnitDay inUnit:NSCalendarUnitMonth forDate:date];
+    return daysInLastMonth.length;
 }
 // 本月是那一月
 - (NSInteger)month:(NSDate *)date
@@ -366,32 +388,167 @@
 
     if (!_monthCalenbar) {
         
-        _monthCalenbar = [[MonthSelectView alloc] initM_calenbarviewframe:CGRectMake(0, 60, self.view.frame.size.width, SCREEN_WIDTH/6)];
-        _monthCalenbar.monthdelegate = self;
+        _monthCalenbar = [[MonthSelectView alloc] initM_calenbarviewframe:CGRectMake(0, 50, self.view.frame.size.width, SCREEN_WIDTH/6)];
         
-        _monthCalenbar.comp = [self month:[NSDate date]]+6;
+        _monthCalenbar.dateFrom = EDateMonth;
+        
+        _monthCalenbar.comp = [self month:[NSDate date]];
+        
+        [_monthCalenbar setData];
         
         [_monthCalenbar getdatesource];
                 
         //日历背景颜色
         _monthCalenbar.McalenbarBGcolor = UIColorFromRGB(0xffffff);
         
-        //被选中的月份圆点颜色
-        _monthCalenbar.MSelecNumBGcolor = PinkTextColor;
-
-        //当前月份的圆点颜色
-        _monthCalenbar.thisMonthNumBGcolor = [UIColor greenColor];
+        __weak typeof(self) weakSelf = self;
+        _monthCalenbar.selectBlock = ^(NSString *date){
         
-        //当前月份数字颜色
-        _monthCalenbar.thisMonthTextColor = DarkTextColor;
+            NSLog(@"- %@",date);
+            _monthNum = [date integerValue];
+            weakSelf.dayCalenbar.dayOfMonthNum = [weakSelf NSStringIntTeger:[date integerValue] andYear:weakSelf.yearNum];
+            [weakSelf.dayCalenbar setData];
+            [weakSelf getYearMonthDay];
+        };
         
     }
     return _monthCalenbar;
 }
-- (void)getmonthString:(NSString *)datestring
-{
-    NSLog(@"月日期回调成功:%@",datestring);
+- (MonthSelectView *)dayCalenbar{
     
+    if (!_dayCalenbar) {
+        
+        _dayCalenbar = [[MonthSelectView alloc] initM_calenbarviewframe:CGRectMake(0, 50+SCREEN_WIDTH/6, self.view.frame.size.width, SCREEN_WIDTH/7)];
+        
+        _dayCalenbar.dateFrom = EDateDay;
+        
+        _dayCalenbar.dayOfMonthNum = [self totaldaysInMonth:[NSDate date]];
+        
+        [_dayCalenbar setData];
+        
+        _dayCalenbar.comp = [self day:[NSDate date]];
+        
+        [_dayCalenbar getdatesource];
+        
+        //日历背景颜色
+        _dayCalenbar.McalenbarBGcolor = UIColorFromRGB(0xffffff);
+        
+        __weak typeof(self) weakSelf = self;
+        _dayCalenbar.selectBlock = ^(NSString *date){
+            
+            NSLog(@"- %@",date);
+            _dayNum = [date integerValue];
+            [weakSelf getYearMonthDay];
+        };
+        
+    }
+    return _dayCalenbar;
+}
+
+/**
+ 
+ *  判断一个月有多少天
+ *
+ *  @param date 日期
+ *
+ *  @return
+ */
+
+- (NSInteger)NSStringIntTeger:(NSInteger)teger andYear:(NSInteger)year
+
+{
+    
+    NSInteger dayCount;
+    
+    switch (teger) {
+            
+        case 1:
+            
+            dayCount = 31;
+            
+            break;
+            
+        case 2:
+            
+            if (year % 400 == 0 || (year % 4 == 0 && year % 100 != 0)) {
+                
+                dayCount = 29;
+                
+            }else{
+                
+                dayCount = 28;
+                
+            }
+            
+            break;
+            
+        case 3:
+            
+            dayCount = 31;
+            
+            break;
+            
+        case 4:
+            
+            dayCount = 30;
+            
+            break;
+            
+        case 5:
+            
+            dayCount = 31;
+            
+            break;
+            
+        case 6:
+            
+            dayCount = 30;
+            
+            break;
+            
+        case 7:
+            
+            dayCount = 31;
+            
+            break;
+            
+        case 8:
+            
+            dayCount = 31;
+            
+            break;
+            
+        case 9:
+            
+            dayCount = 30;
+            
+            break;
+            
+        case 10:
+            
+            dayCount = 31;
+            
+            break;
+            
+        case 11:
+            
+            dayCount = 30;
+            
+            break;
+            
+        default:
+            
+            dayCount = 31;
+            
+            break;
+            
+    }
+    
+    return dayCount;
+}
+- (void)getYearMonthDay{
+
+    NSLog(@"date --- %ld-%ld-%ld",_yearNum,_monthNum,_dayNum);
 }
 #pragma Mark --- 套餐到期View
 //套餐到期
