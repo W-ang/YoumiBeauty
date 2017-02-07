@@ -308,8 +308,8 @@
 #pragma Mark --- 流水明细View
 //流水明细
 - (void)setMiddleView{
-
-    UIView *dateBackView = [[UIView alloc] initWithFrame:Rect(0, 10, SCREEN_WIDTH, 50+SCREEN_WIDTH/6+SCREEN_WIDTH/7)];
+    
+    UIView *dateBackView = [[UIView alloc] initWithFrame:Rect(0, 5, SCREEN_WIDTH, 50+SCREEN_WIDTH/6+SCREEN_WIDTH/7)];
     dateBackView.backgroundColor = [UIColor whiteColor];
     [self.view addSubview:dateBackView];
     
@@ -427,7 +427,7 @@
         
         [_dayCalenbar setData];
         
-        _dayCalenbar.comp = [self day:[NSDate date]]+21;
+        _dayCalenbar.comp = [self day:[NSDate date]];
         
         [_dayCalenbar getdatesource];
         

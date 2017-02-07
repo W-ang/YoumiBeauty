@@ -39,7 +39,7 @@ static NSString *const ID = @"homeMainCollectionViewCellIdentifier";
     
     self.collectionView.delegate        = self;
     self.collectionView.dataSource      = self;
-    self.collectionView.scrollEnabled   = NO;
+//    self.collectionView.scrollEnabled   = NO;
     
     layout.minimumInteritemSpacing      = 0;
     layout.minimumLineSpacing           = 0;
