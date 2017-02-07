@@ -359,7 +359,7 @@
     [self.dayCalenbar setData];
     [self getYearMonthDay];
 }
-//*****hhhh
+
 // 今天是哪一天
 - (NSInteger)day:(NSDate *)date
 {
