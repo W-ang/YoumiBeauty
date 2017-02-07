@@ -309,7 +309,7 @@
 //流水明细
 - (void)setMiddleView{
 
-    UIView *dateBackView = [[UIView alloc] initWithFrame:Rect(0, 10, SCREEN_WIDTH, 165)];
+    UIView *dateBackView = [[UIView alloc] initWithFrame:Rect(0, 10, SCREEN_WIDTH, 50+SCREEN_WIDTH/6+SCREEN_WIDTH/7)];
     dateBackView.backgroundColor = [UIColor whiteColor];
     [self.view addSubview:dateBackView];
     
@@ -426,7 +426,7 @@
         
         [_dayCalenbar setData];
         
-        _dayCalenbar.comp = [self day:[NSDate date]];
+        _dayCalenbar.comp = [self day:[NSDate date]]+21;
         
         [_dayCalenbar getdatesource];
         
@@ -446,7 +446,6 @@
 }
 
 /**
- 
  *  判断一个月有多少天
  *
  *  @param date 日期
